@@ -148,8 +148,8 @@ with st.sidebar:
         for ts, dev, prob in rows:
             st.write(f"**{dev}** - {ts[:16]}")
             st.caption(prob[:50] + "...")
-    else:
+        else:
         st.write("No history yet.")
-    st.divider()
-  total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
-st.metric("Total Diagnoses", total_count)
+        st.divider()
+        total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
+        st.metric("Total Diagnoses", total_count)
