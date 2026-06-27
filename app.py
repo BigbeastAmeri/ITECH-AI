@@ -151,4 +151,5 @@ with st.sidebar:
     else:
         st.write("No history yet.")
     st.divider()
-    st.metric("Total Diagnoses", len(c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]))
+  total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
+st.metric("Total Diagnoses", total_count)
