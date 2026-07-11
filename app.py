@@ -177,6 +177,28 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
             st.success("Diagnosis Complete:")
             st.write(answer)
 
+            # ===== NEW: FIND TECHNICIAN NEAR ME =====
+            st.divider()
+            st.subheader("👨‍🔧 Need a Professional?")
+
+            st.info(f"**For {device} repair in {country}**")
+
+            # Create Google Maps search link
+            search_query = f"appliance+repair+technician+near+me+{country}"
+            maps_link = f"https://www.google.com/maps/search/{search_query}"
+
+            # Create Google Search link
+            google_link = f"https://www.google.com/search?q=appliance repair technician near me {country}"
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.link_button("📍 Find on Google Maps", maps_link, use_container_width=True)
+            with col2:
+                st.link_button("🔍 Search on Google", google_link, use_container_width=True)
+
+            st.caption("Tip: Click 'Near Me' and Google will show technicians closest to you with ratings + phone")
+            # ===== END NEW CODE =====
+
             # ===== RATING + SHARE =====
             col1, col2, col3 = st.columns([1,1,2])
             with col1:
@@ -205,4 +227,3 @@ with st.sidebar:
     st.divider()
     total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
     st.metric("Total Diagnoses", total_count)
-
