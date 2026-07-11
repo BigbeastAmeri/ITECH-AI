@@ -4,6 +4,7 @@ import os
 import sqlite3
 from datetime import datetime
 from dotenv import load_dotenv
+import urllib.parse
 
 # ===== LAYER 1: SETUP =====
 load_dotenv()
@@ -19,8 +20,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS logs
 conn.commit()
 
 # ===== LAYER 3: GLOBAL DATA = 195 COUNTRIES + 55 APPLIANCES =====
-
-# 1. ALL 195 COUNTRIES + STANDARD VOLTAGE MAP
 COUNTRIES_VOLTAGE = {
     "Afghanistan": "220V", "Albania": "230V", "Algeria": "230V", "Andorra": "230V", "Angola": "220V", "Antigua and Barbuda": "230V", "Argentina": "220V", "Armenia": "230V", "Australia": "230V", "Austria": "230V",
     "Azerbaijan": "220V", "Bahamas": "120V", "Bahrain": "230V", "Bangladesh": "220V", "Barbados": "115V", "Belarus": "220V", "Belgium": "230V", "Belize": "120V", "Benin": "220V", "Bhutan": "230V",
@@ -44,48 +43,17 @@ COUNTRIES_VOLTAGE = {
     "Vietnam": "220V", "Yemen": "220V", "Zambia": "230V", "Zimbabwe": "230V", "Other": "220V"
 }
 
-# 2. ALL 195 COUNTRIES LOCAL DATA: CURRENCY + PARTS + COMMON ISSUE
 COUNTRY_LOCAL_DATA = {
-    "Afghanistan": {"currency": "Af", "parts": "Local bazaars, Kabul Electronics", "common_issue": "Power outages"},
-    "Albania": {"currency": "Lek", "parts": "Altex, Nepton", "common_issue": "230V standard"},
-    "Algeria": {"currency": "DZD", "parts": "Local markets, Jumia.dz", "common_issue": "Voltage fluctuation"},
-    "Angola": {"currency": "Kz", "parts": "Shoprite, Jumia.ao", "common_issue": "Power cuts"},
-    "Argentina": {"currency": "$", "parts": "Mercado Libre, Frávega", "common_issue": "220V standard"},
-    "Australia": {"currency": "A$", "parts": "JB Hi-Fi, Harvey Norman", "common_issue": "230V standard"},
-    "Austria": {"currency": "€", "parts": "MediaMarkt, Amazon.de", "common_issue": "230V EU standard"},
-    "Bangladesh": {"currency": "৳", "parts": "Bashundhara City, Daraz.com.bd", "common_issue": "Loadshedding"},
-    "Belgium": {"currency": "€", "parts": "Fnac, Coolblue", "common_issue": "230V standard"},
-    "Brazil": {"currency": "R$", "parts": "Mercado Livre, Magazine Luiza", "common_issue": "127V/220V confusion"},
-    "Canada": {"currency": "$", "parts": "Home Depot, Canadian Tire, Amazon.ca", "common_issue": "110V, Cold weather"},
-    "China": {"currency": "¥", "parts": "JD.com, Tmall", "common_issue": "220V standard"},
-    "Egypt": {"currency": "E£", "parts": "B.Tech, Jumia.eg", "common_issue": "Power cuts"},
-    "France": {"currency": "€", "parts": "Darty, Boulanger", "common_issue": "230V standard"},
-    "Germany": {"currency": "€", "parts": "MediaMarkt, Saturn, Amazon.de", "common_issue": "230V EU standards"},
+    "Nigeria": {"currency": "₦", "parts": "Alaba International Market, Jumia.ng, Konga", "common_issue": "NEPA power surge, voltage fluctuation"},
+    "USA": {"currency": "$", "parts": "Home Depot, Lowe's, Amazon.com", "common_issue": "Warranty claims, 110V"},
+    "UK": {"currency": "£", "parts": "Currys, Screwfix, Amazon.co.uk", "common_issue": "3-pin plug, 230V"},
     "Ghana": {"currency": "₵", "parts": "Circle Market Accra, Jumia.com.gh", "common_issue": "Dumsor power cuts"},
     "India": {"currency": "₹", "parts": "Croma, Reliance Digital, Amazon.in", "common_issue": "Power cuts, 230V"},
-    "Indonesia": {"currency": "Rp", "parts": "Tokopedia, Bukalapak", "common_issue": "230V standard"},
-    "Italy": {"currency": "€", "parts": "Euronics, MediaWorld", "common_issue": "230V standard"},
-    "Japan": {"currency": "¥", "parts": "Yodobashi, Bic Camera", "common_issue": "100V low voltage"},
-    "Kenya": {"currency": "KSh", "parts": "Jumia.co.ke, Hotpoint", "common_issue": "Power outages"},
-    "Malaysia": {"currency": "RM", "parts": "Lazada, Shopee", "common_issue": "240V standard"},
-    "Mexico": {"currency": "$", "parts": "Home Depot, Liverpool", "common_issue": "127V standard"},
-    "Nigeria": {"currency": "₦", "parts": "Alaba International Market, Jumia.ng, Konga", "common_issue": "NEPA power surge, voltage fluctuation"},
-    "Pakistan": {"currency": "₨", "parts": "Daraz.pk, Hall Road Lahore", "common_issue": "Loadshedding"},
-    "Philippines": {"currency": "₱", "parts": "Lazada, Shopee, Abenson", "common_issue": "220V standard"},
-    "Russia": {"currency": "₽", "parts": "M.Video, DNS", "common_issue": "220V standard"},
-    "Saudi Arabia": {"currency": "SAR", "parts": "Extra, Amazon.sa", "common_issue": "Heat and dust"},
+    "UAE": {"currency": "AED", "parts": "Carrefour, Amazon.ae, Sharaf DG", "common_issue": "Heat and dust"},
     "South Africa": {"currency": "R", "parts": "Takealot, Builders Warehouse", "common_issue": "Loadshedding"},
-    "South Korea": {"currency": "₩", "parts": "Coupang, Gmarket", "common_issue": "220V standard"},
-    "Spain": {"currency": "€", "parts": "MediaMarkt, El Corte Ingles", "common_issue": "230V standard"},
-    "Turkey": {"currency": "₺", "parts": "Trendyol, Vatan", "common_issue": "230V standard"},
-    "United Arab Emirates": {"currency": "AED", "parts": "Carrefour, Amazon.ae, Sharaf DG", "common_issue": "Heat and dust"},
-    "United Kingdom": {"currency": "£", "parts": "Currys, Screwfix, Amazon.co.uk", "common_issue": "3-pin plug, 230V"},
-    "United States": {"currency": "$", "parts": "Home Depot, Lowe's, Amazon.com", "common_issue": "Warranty claims, 110V"},
-    "Vietnam": {"currency": "₫", "parts": "Tiki, Dien May Xanh", "common_issue": "220V standard"},
     "default": {"currency": "$", "parts": "Local appliance stores, Amazon", "common_issue": "Standard voltage issues"}
 }
 
-# 3. ALL HOME + ELECTRONICS APPLIANCES LIST
 ALL_APPLIANCES = [
     "Air Conditioner AC", "Refrigerator", "Freezer", "Washing Machine", "Dryer",
     "Dishwasher", "Microwave Oven", "Electric Oven", "Gas Cooker", "Induction Cooker",
@@ -114,7 +82,7 @@ col1, col2 = st.columns([3,1])
 with col2:
     panic = st.button("🚨 PANIC MODE", type="primary", use_container_width=True, help="Device sparking, smoking, leaking NOW")
 
-# ===== INPUTS: DEVICE + COUNTRY/VOLTAGE [ALL SEARCHABLE] =====
+# ===== INPUTS: DEVICE + COUNTRY/VOLTAGE =====
 col1, col2, col3 = st.columns(3)
 with col1:
     device = st.selectbox("1. Select Device 🔧", options=ALL_APPLIANCES, index=None, placeholder="Type to search: TV, Microwave...")
@@ -126,7 +94,7 @@ with col3:
 # ===== PROBLEM INPUT =====
 user_input = st.text_area("4. Describe your appliance issue. Any language:", placeholder="e.g. AC not cooling, Fridge making noise...")
 
-# ===== AI BRAIN FUNCTION - NOW COUNTRY SMART =====
+# ===== AI BRAIN FUNCTION =====
 def get_ai_diagnosis(problem, device, country, voltage, panic=False):
     if panic:
         return "🚨 EMERGENCY 3-STEPS:\n1. UNPLUG DEVICE NOW FROM WALL.\n2. If water/gas/smoke: LEAVE AREA. CALL LICENSED TECH/EMERGENCY.\n3. Do NOT touch wet parts or open panels."
@@ -146,7 +114,7 @@ def get_ai_diagnosis(problem, device, country, voltage, panic=False):
     RULE 1: First line MUST be: 'SAFETY: UNPLUG DEVICE FIRST. Keep hands dry.'
     RULE 2: Give EXACTLY 3 troubleshooting steps that make sense for {country}
     RULE 3: Mention {local['parts']} when suggesting where to buy parts
-    RULE 4: Give price estimate in {local['currency']} for {country}
+    RULE 4: Give 2 price estimates in {local['currency']}: 'DIY Cost:' and 'Technician Cost:'
     RULE 5: If electrical/gas/refrigerant: End with 'Call licensed technician in {country}.'
     RULE 6: Reply in the SAME LANGUAGE the user wrote.
     RULE 7: Be practical. Reference {local['common_issue']} if relevant.
@@ -159,13 +127,12 @@ def get_ai_diagnosis(problem, device, country, voltage, panic=False):
             {"role": "user", "content": f"{device} issue in {country}: {problem}"}
         ],
         temperature=0.3,
-        max_tokens=350
+        max_tokens=400
     )
     return response.choices[0].message.content
 
 # ===== DIAGNOSE BUTTON WITH VALIDATION =====
 if st.button("Diagnose Now", type="primary", use_container_width=True):
-    # VALIDATION: STOP IF EMPTY
     if not device:
         st.error("❌ Please select a Device first")
     elif not user_input.strip():
@@ -177,17 +144,45 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
             st.success("Diagnosis Complete:")
             st.write(answer)
 
-            # ===== NEW: FIND TECHNICIAN NEAR ME =====
+            # ===== POWER ACTIONS BAR: COPY, SHARE, TRANSLATE, DOWNLOAD =====
+            st.code(answer, language=None)
+
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                if st.button("📋 Copy", use_container_width=True, help="Copy to clipboard"):
+                    st.toast("✅ Copied! Paste anywhere")
+
+            with col2:
+                # Share to WhatsApp, Telegram, etc
+                share_text = f"Itech AI Diagnosis for {device} in {country}:\n\n{answer}"
+                encoded_text = urllib.parse.quote(share_text)
+                whatsapp_link = f"https://wa.me/?text={encoded_text}"
+                st.link_button("📱 Share", whatsapp_link, use_container_width=True)
+
+            with col3:
+                # Download as TXT file
+                st.download_button(
+                    label="💾 Download",
+                    data=answer,
+                    file_name=f"ItechAI_{device}_{datetime.now().strftime('%Y%m%d')}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+
+            with col4:
+                # Google Translate link
+                encoded_answer = urllib.parse.quote(answer[:500])
+                translate_link = f"https://translate.google.com/?sl=auto&tl=en&text={encoded_answer}&op=translate"
+                st.link_button("🌍 Translate", translate_link, use_container_width=True)
+
+            # ===== FIND TECHNICIAN NEAR ME =====
             st.divider()
             st.subheader("👨‍🔧 Need a Professional?")
 
             st.info(f"**For {device} repair in {country}**")
-
-            # Create Google Maps search link
             search_query = f"appliance+repair+technician+near+me+{country}"
             maps_link = f"https://www.google.com/maps/search/{search_query}"
-
-            # Create Google Search link
             google_link = f"https://www.google.com/search?q=appliance repair technician near me {country}"
 
             col1, col2 = st.columns(2)
@@ -195,9 +190,7 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
                 st.link_button("📍 Find on Google Maps", maps_link, use_container_width=True)
             with col2:
                 st.link_button("🔍 Search on Google", google_link, use_container_width=True)
-
             st.caption("Tip: Click 'Near Me' and Google will show technicians closest to you with ratings + phone")
-            # ===== END NEW CODE =====
 
             # ===== RATING + SHARE =====
             col1, col2, col3 = st.columns([1,1,2])
@@ -206,8 +199,8 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
             with col2:
                 st.button("👎 Not Helpful")
             with col3:
-                share_text = f"AI fixed my {device}: {user_input[:30]}... Try Itech AI: https://itech-ai.streamlit.app"
-                st.code(share_text, language=None)
+                share_text2 = f"AI fixed my {device}: {user_input[:30]}... Try Itech AI: https://itech-ai.streamlit.app"
+                st.code(share_text2, language=None)
 
             # ===== SAVE TO DB =====
             c.execute("INSERT INTO logs (timestamp, device, country, voltage, problem, answer) VALUES (?,?,?,?,?,?)",
