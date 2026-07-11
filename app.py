@@ -15,7 +15,7 @@ st.set_page_config(page_title="Itech AI Global", page_icon="🔧", layout="wide"
 conn = sqlite3.connect('itech_ai.db', check_same_thread=False)
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS logs
-             (id INTEGER PRIMARY KEY, timestamp, device, country, voltage, problem, answer, rating)''')
+             (id INTEGER PRIMARY KEY, timestamp TEXT, device TEXT, country TEXT, voltage TEXT, problem TEXT, answer TEXT, rating TEXT)''')
 conn.commit()
 
 # ===== LAYER 3: GLOBAL DATA = 195 COUNTRIES + 55 APPLIANCES =====
@@ -44,26 +44,61 @@ COUNTRIES_VOLTAGE = {
     "Vietnam": "220V", "Yemen": "220V", "Zambia": "230V", "Zimbabwe": "230V", "Other": "220V"
 }
 
-# 2. ALL HOME + ELECTRONICS APPLIANCES LIST
+# 2. ALL 195 COUNTRIES LOCAL DATA: CURRENCY + PARTS + COMMON ISSUE
+COUNTRY_LOCAL_DATA = {
+    "Afghanistan": {"currency": "Af", "parts": "Local bazaars, Kabul Electronics", "common_issue": "Power outages"},
+    "Albania": {"currency": "Lek", "parts": "Altex, Nepton", "common_issue": "230V standard"},
+    "Algeria": {"currency": "DZD", "parts": "Local markets, Jumia.dz", "common_issue": "Voltage fluctuation"},
+    "Angola": {"currency": "Kz", "parts": "Shoprite, Jumia.ao", "common_issue": "Power cuts"},
+    "Argentina": {"currency": "$", "parts": "Mercado Libre, Frávega", "common_issue": "220V standard"},
+    "Australia": {"currency": "A$", "parts": "JB Hi-Fi, Harvey Norman", "common_issue": "230V standard"},
+    "Austria": {"currency": "€", "parts": "MediaMarkt, Amazon.de", "common_issue": "230V EU standard"},
+    "Bangladesh": {"currency": "৳", "parts": "Bashundhara City, Daraz.com.bd", "common_issue": "Loadshedding"},
+    "Belgium": {"currency": "€", "parts": "Fnac, Coolblue", "common_issue": "230V standard"},
+    "Brazil": {"currency": "R$", "parts": "Mercado Livre, Magazine Luiza", "common_issue": "127V/220V confusion"},
+    "Canada": {"currency": "$", "parts": "Home Depot, Canadian Tire, Amazon.ca", "common_issue": "110V, Cold weather"},
+    "China": {"currency": "¥", "parts": "JD.com, Tmall", "common_issue": "220V standard"},
+    "Egypt": {"currency": "E£", "parts": "B.Tech, Jumia.eg", "common_issue": "Power cuts"},
+    "France": {"currency": "€", "parts": "Darty, Boulanger", "common_issue": "230V standard"},
+    "Germany": {"currency": "€", "parts": "MediaMarkt, Saturn, Amazon.de", "common_issue": "230V EU standards"},
+    "Ghana": {"currency": "₵", "parts": "Circle Market Accra, Jumia.com.gh", "common_issue": "Dumsor power cuts"},
+    "India": {"currency": "₹", "parts": "Croma, Reliance Digital, Amazon.in", "common_issue": "Power cuts, 230V"},
+    "Indonesia": {"currency": "Rp", "parts": "Tokopedia, Bukalapak", "common_issue": "230V standard"},
+    "Italy": {"currency": "€", "parts": "Euronics, MediaWorld", "common_issue": "230V standard"},
+    "Japan": {"currency": "¥", "parts": "Yodobashi, Bic Camera", "common_issue": "100V low voltage"},
+    "Kenya": {"currency": "KSh", "parts": "Jumia.co.ke, Hotpoint", "common_issue": "Power outages"},
+    "Malaysia": {"currency": "RM", "parts": "Lazada, Shopee", "common_issue": "240V standard"},
+    "Mexico": {"currency": "$", "parts": "Home Depot, Liverpool", "common_issue": "127V standard"},
+    "Nigeria": {"currency": "₦", "parts": "Alaba International Market, Jumia.ng, Konga", "common_issue": "NEPA power surge, voltage fluctuation"},
+    "Pakistan": {"currency": "₨", "parts": "Daraz.pk, Hall Road Lahore", "common_issue": "Loadshedding"},
+    "Philippines": {"currency": "₱", "parts": "Lazada, Shopee, Abenson", "common_issue": "220V standard"},
+    "Russia": {"currency": "₽", "parts": "M.Video, DNS", "common_issue": "220V standard"},
+    "Saudi Arabia": {"currency": "SAR", "parts": "Extra, Amazon.sa", "common_issue": "Heat and dust"},
+    "South Africa": {"currency": "R", "parts": "Takealot, Builders Warehouse", "common_issue": "Loadshedding"},
+    "South Korea": {"currency": "₩", "parts": "Coupang, Gmarket", "common_issue": "220V standard"},
+    "Spain": {"currency": "€", "parts": "MediaMarkt, El Corte Ingles", "common_issue": "230V standard"},
+    "Turkey": {"currency": "₺", "parts": "Trendyol, Vatan", "common_issue": "230V standard"},
+    "United Arab Emirates": {"currency": "AED", "parts": "Carrefour, Amazon.ae, Sharaf DG", "common_issue": "Heat and dust"},
+    "United Kingdom": {"currency": "£", "parts": "Currys, Screwfix, Amazon.co.uk", "common_issue": "3-pin plug, 230V"},
+    "United States": {"currency": "$", "parts": "Home Depot, Lowe's, Amazon.com", "common_issue": "Warranty claims, 110V"},
+    "Vietnam": {"currency": "₫", "parts": "Tiki, Dien May Xanh", "common_issue": "220V standard"},
+    "default": {"currency": "$", "parts": "Local appliance stores, Amazon", "common_issue": "Standard voltage issues"}
+}
+
+# 3. ALL HOME + ELECTRONICS APPLIANCES LIST
 ALL_APPLIANCES = [
-    # HOME APPLIANCES
-    "Air Conditioner AC", "Refrigerator", "Freezer", "Washing Machine", "Dryer", 
+    "Air Conditioner AC", "Refrigerator", "Freezer", "Washing Machine", "Dryer",
     "Dishwasher", "Microwave Oven", "Electric Oven", "Gas Cooker", "Induction Cooker",
-    "Electric Kettle", "Blender", "Mixer", "Juicer", "Toaster", "Rice Cooker", 
-    "Air Fryer", "Water Dispenser", "Water Heater Geyser", "Vacuum Cleaner", 
+    "Electric Kettle", "Blender", "Mixer", "Juicer", "Toaster", "Rice Cooker",
+    "Air Fryer", "Water Dispenser", "Water Heater Geyser", "Vacuum Cleaner",
     "Iron", "Steamer", "Fan Ceiling", "Fan Standing", "Air Purifier", "Humidifier",
-    # COOLING/HEATING
     "Deep Freezer", "Chest Freezer", "Wine Cooler", "Ice Maker", "Heater",
-    # ELECTRONICS + ENTERTAINMENT 
-    "Television TV LED", "Television TV OLED", "Decoder DSTV", "Decoder GOTV", 
+    "Television TV LED", "Television TV OLED", "Decoder DSTV", "Decoder GOTV",
     "Sound System", "Amplifier", "Speaker", "Home Theatre", "Projector",
     "PlayStation PS5", "PlayStation PS4", "Xbox", "Nintendo", "DVD Player",
-    # POWER + SOLAR
-    "Solar Inverter", "Solar Charge Controller", "Solar Battery", "UPS", 
+    "Solar Inverter", "Solar Charge Controller", "Solar Battery", "UPS",
     "Generator", "Stabilizer", "Voltage Regulator", "Power Bank",
-    # PHONES + COMPUTERS
     "Laptop", "Desktop PC", "Monitor", "Printer", "Router Wifi", "Phone Charger",
-    # OTHER ELECTRONICS
     "Electric Drill", "Welding Machine", "Pressure Cooker", "Sewing Machine",
     "Hair Dryer", "Clippers", "Electric Fence", "CCTV Camera", "Other"
 ]
@@ -91,55 +126,73 @@ with col3:
 # ===== PROBLEM INPUT =====
 user_input = st.text_area("4. Describe your appliance issue. Any language:", placeholder="e.g. AC not cooling, Fridge making noise...")
 
-# ===== AI BRAIN FUNCTION =====
+# ===== AI BRAIN FUNCTION - NOW COUNTRY SMART =====
 def get_ai_diagnosis(problem, device, country, voltage, panic=False):
     if panic:
         return "🚨 EMERGENCY 3-STEPS:\n1. UNPLUG DEVICE NOW FROM WALL.\n2. If water/gas/smoke: LEAVE AREA. CALL LICENSED TECH/EMERGENCY.\n3. Do NOT touch wet parts or open panels."
 
+    local = COUNTRY_LOCAL_DATA.get(country, COUNTRY_LOCAL_DATA["default"])
+
     system_prompt = f"""
-    You are ITECH AI, a world-class expert technician for ALL electronics and home appliances.
-    Country: {country}. Voltage: {voltage}. Device: {device}.
+    You are ITECH AI, a world-class expert technician for {country}.
+
+    CRITICAL CONTEXT FOR {country}:
+    - Voltage: {voltage}
+    - Currency: Use {local['currency']} for all prices
+    - Where to buy parts: {local['parts']}
+    - Most common problem in {country}: {local['common_issue']}
+    - Device: {device}
+
     RULE 1: First line MUST be: 'SAFETY: UNPLUG DEVICE FIRST. Keep hands dry.'
-    RULE 2: If electrical/gas/refrigerant: End with 'Call licensed technician.'
-    RULE 3: Give only 3 steps max. Be simple, practical.
-    RULE 4: At end add local cost estimate for {country} using {voltage}.
-    RULE 5: Reply in the SAME LANGUAGE the user wrote.
+    RULE 2: Give EXACTLY 3 troubleshooting steps that make sense for {country}
+    RULE 3: Mention {local['parts']} when suggesting where to buy parts
+    RULE 4: Give price estimate in {local['currency']} for {country}
+    RULE 5: If electrical/gas/refrigerant: End with 'Call licensed technician in {country}.'
+    RULE 6: Reply in the SAME LANGUAGE the user wrote.
+    RULE 7: Be practical. Reference {local['common_issue']} if relevant.
     """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"{device} issue: {problem}"}
+            {"role": "user", "content": f"{device} issue in {country}: {problem}"}
         ],
         temperature=0.3,
-        max_tokens=300
+        max_tokens=350
     )
     return response.choices[0].message.content
 
-# ===== DIAGNOSE BUTTON =====
-if st.button("Diagnose Now", type="primary", use_container_width=True) and user_input and device:
-    with st.spinner("Thinking like a master tech..."):
-        answer = get_ai_diagnosis(user_input, device, country, voltage, panic)
+# ===== DIAGNOSE BUTTON WITH VALIDATION =====
+if st.button("Diagnose Now", type="primary", use_container_width=True):
+    # VALIDATION: STOP IF EMPTY
+    if not device:
+        st.error("❌ Please select a Device first")
+    elif not user_input.strip():
+        st.error("❌ Please describe your appliance issue")
+    else:
+        with st.spinner("Thinking like a master tech..."):
+            answer = get_ai_diagnosis(user_input, device, country, voltage, panic)
 
-        st.success("Diagnosis Complete:")
-        st.write(answer)
+            st.success("Diagnosis Complete:")
+            st.write(answer)
 
-        # ===== RATING + SHARE =====
-        col1, col2, col3 = st.columns([1,1,2])
-        with col1:
-            st.button("👍 Helpful")
-        with col2:
-            st.button("👎 Not Helpful")
-        with col3:
-            share_text = f"AI fixed my {device}: {user_input[:30]}... Try Itech AI: https://itech-ai.streamlit.app"
-            st.code(share_text, language=None)
+            # ===== RATING + SHARE =====
+            col1, col2, col3 = st.columns([1,1,2])
+            with col1:
+                st.button("👍 Helpful")
+            with col2:
+                st.button("👎 Not Helpful")
+            with col3:
+                share_text = f"AI fixed my {device}: {user_input[:30]}... Try Itech AI: https://itech-ai.streamlit.app"
+                st.code(share_text, language=None)
 
-        # ===== SAVE TO DB =====
-        c.execute("INSERT INTO logs (timestamp, device, country, voltage, problem, answer) VALUES (?,?,?,?,?,?)",
-                  (datetime.now(), device, country, voltage, user_input, answer))
-        conn.commit()
-       # ===== SIDEBAR HISTORY =====
+            # ===== SAVE TO DB =====
+            c.execute("INSERT INTO logs (timestamp, device, country, voltage, problem, answer) VALUES (?,?,?,?,?,?)",
+                      (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), device, country, voltage, user_input, answer))
+            conn.commit()
+
+# ===== SIDEBAR HISTORY =====
 with st.sidebar:
     st.header("📜 Past Repairs")
     rows = c.execute("SELECT timestamp, device, problem FROM logs ORDER BY id DESC LIMIT 10").fetchall()
@@ -149,7 +202,7 @@ with st.sidebar:
             st.caption(prob[:50] + "...")
     else:
         st.write("No history yet.")
-        st.divider()
-        total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
-        st.metric("Total Diagnoses", total_count)      
+    st.divider()
+    total_count = c.execute('SELECT COUNT(*) FROM logs').fetchone()[0]
+    st.metric("Total Diagnoses", total_count)
 
