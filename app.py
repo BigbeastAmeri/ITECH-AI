@@ -209,4 +209,4 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
     cols2[3].components.html(f"""<script>function printDiv(){{var w=window.open('','');w.document.write('<pre>{safe_answer}</pre>');w.print();}}</script><button onclick="printDiv()" style="width:100%;padding:10px;border-radius:8px;background:#2196F3;color:white;border:none;">🖨️ Save PDF</button>""", height=45)
 
     if st.session_state.show_tech_map:
-    st.link_button("🗺️ Find Tech", f"https://www.google.com/maps/search/{urllib.parse.quote(device + ' repair technician near me in ' + country)}", use_container_width=True)
+        st.link_button("🗺️ Find Tech", f"https://www.google.com/maps/search/{urllib.parse.quote(device + ' repair technician near me in ' + country)}", use_container_width=True)    
