@@ -191,22 +191,22 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
             st.success("✅ Done")
             st.markdown(answer); st.code(answer, language="text", line_numbers=True)
 
-st.markdown("### ⚡ Quick Actions")
-safe_answer = answer.replace('`', '\\`').replace('\n', '\\n')
+    st.markdown("### ⚡ Quick Actions")
+    safe_answer = answer.replace('`', '\\`').replace('\n', '\\n')
 
-cols = st.columns(4)
-cols[0].components.html(f"""<script>function copyText(){{navigator.clipboard.writeText(`{safe_answer}`);}}</script><button onclick="copyText()" style="width:100%;padding:10px;border-radius:8px;background:#4CAF50;color:white;border:none;">📋 Copy All</button>""", height=45)
+    cols = st.columns(4)
+    cols[0].components.html(f"""<script>function copyText(){{navigator.clipboard.writeText(`{safe_answer}`);}}</script><button onclick="copyText()" style="width:100%;padding:10px;border-radius:8px;background:#4CAF50;color:white;border:none;">📋 Copy All</button>""", height=45)
 
-if cols[1].button("📥 Paste to Input", use_container_width=True): st.session_state.pasted_text = answer; st.rerun()
+    if cols[1].button("📥 Paste to Input", use_container_width=True): st.session_state.pasted_text = answer; st.rerun()
 
-cols[2].link_button("🔍 Look Up", f"https://www.google.com/search?q={urllib.parse.quote(device + ' ' + user_input[:50] + ' repair')}", use_container_width=True)
-cols[3].link_button("🌍 Translate", f"https://translate.google.com/?text={urllib.parse.quote(answer[:1000])}", use_container_width=True)
+    cols[2].link_button("🔍 Look Up", f"https://www.google.com/search?q={urllib.parse.quote(device + ' ' + user_input[:50] + ' repair')}", use_container_width=True)
+    cols[3].link_button("🌍 Translate", f"https://translate.google.com/?text={urllib.parse.quote(answer[:1000])}", use_container_width=True)
 
-cols2 = st.columns(4)
-cols2[0].link_button("📱 Share WA", f"https://wa.me/?text={urllib.parse.quote(answer)}", use_container_width=True)
-cols2[1].link_button("🔗 Share Web", f"https://wa.me/?text={urllib.parse.quote('Itech AI Diagnosis: ' + answer[:200])}", use_container_width=True)
-cols2[2].download_button("💾 Save.TXT", data=answer, file_name=f"ItechAI_{device}_{datetime.now().strftime('%Y%m%d')}.txt", use_container_width=True)
-cols2[3].components.html(f"""<script>function printDiv(){{var w=window.open('','');w.document.write('<pre>{safe_answer}</pre>');w.print();}}</script><button onclick="printDiv()" style="width:100%;padding:10px;border-radius:8px;background:#2196F3;color:white;border:none;">🖨️ Save PDF</button>""", height=45)
+    cols2 = st.columns(4)
+    cols2[0].link_button("📱 Share WA", f"https://wa.me/?text={urllib.parse.quote(answer)}", use_container_width=True)
+    cols2[1].link_button("🔗 Share Web", f"https://wa.me/?text={urllib.parse.quote('Itech AI Diagnosis: ' + answer[:200])}", use_container_width=True)
+    cols2[2].download_button("💾 Save.TXT", data=answer, file_name=f"ItechAI_{device}_{datetime.now().strftime('%Y%m%d')}.txt", use_container_width=True)
+    cols2[3].components.html(f"""<script>function printDiv(){{var w=window.open('','');w.document.write('<pre>{safe_answer}</pre>');w.print();}}</script><button onclick="printDiv()" style="width:100%;padding:10px;border-radius:8px;background:#2196F3;color:white;border:none;">🖨️ Save PDF</button>""", height=45)
 
 if st.session_state.show_tech_map:
     st.link_button("🗺️ Find Tech", f"https://www.google.com/maps/search/{urllib.parse.quote(device + ' repair technician near me in ' + country)}", use_container_width=True)
