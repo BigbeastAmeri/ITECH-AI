@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import openai
 import os
 import sqlite3
@@ -170,7 +171,9 @@ col1, col2, col3 = st.columns(3)
 with col1: device = st.selectbox("1. Select Device 🔧", ALL_APPLIANCES, index=None)
 with col2: country = st.selectbox("2. Select Country 🌍", sorted(COUNTRIES_VOLTAGE.keys()), index=sorted(COUNTRIES_VOLTAGE.keys()).index(st.session_state.default_country))
 with col3: voltage = st.selectbox("3. Voltage", [COUNTRIES_VOLTAGE[country]], disabled=True)
-user_input = st.text_area("4. Describe your appliance issue. Any language:")
+default_text = st.session_state.get('pasted_text', '')
+user_input = st.text_area("4. Describe your appliance issue. Any language:", value=default_text, key="problem")
+if 'pasted_text' in st.session_state: del st.session_state.pasted_text
 
 def get_ai_diagnosis(problem, device, country, voltage, panic):
     if panic: return "🚨 UNPLUG NOW. CALL LICENSED ELECTRICIAN IMMEDIATELY."
@@ -186,12 +189,24 @@ if st.button("Diagnose Now", type="primary", use_container_width=True):
         with st.spinner("🔍 Thinking..."):
             answer = get_ai_diagnosis(user_input, device, country, voltage, panic)
             st.success("✅ Done")
-            st.markdown(answer); st.code(answer)
-            col1, col2, col3, col4, col5 = st.columns(5)
-            with col1: st.button("📋 Copy")
-            with col2: st.link_button("📱 Share", f"https://wa.me/?text={urllib.parse.quote(answer)}")
-            with col3: st.download_button("💾 Download", data=answer, file_name=f"ItechAI_{device}.txt")
-            with col4: st.link_button("🌍 Translate", f"https://translate.google.com/?text={urllib.parse.quote(answer[:500])}")
-            if st.session_state.show_tech_map:
-                with col5: st.link_button("🗺️ Find Tech", f"https://www.google.com/maps/search/{urllib.parse.quote(f'{device} repair technician near me in {country}')}")
-            c.execute("INSERT INTO logs VALUES (NULL,?,?,?,?,?,?)", (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), device, country, voltage, user_input, answer)); conn.commit()
+            st.markdown(answer); st.code(answer, language="text", line_numbers=True)
+
+st.markdown("### ⚡ Quick Actions")
+safe_answer = answer.replace('`', '\\`').replace('\n', '\\n')
+
+cols = st.columns(4)
+cols[0].components.html(f"""<script>function copyText(){{navigator.clipboard.writeText(`{safe_answer}`);}}</script><button onclick="copyText()" style="width:100%;padding:10px;border-radius:8px;background:#4CAF50;color:white;border:none;">📋 Copy All</button>""", height=45)
+
+if cols[1].button("📥 Paste to Input", use_container_width=True): st.session_state.pasted_text = answer; st.rerun()
+
+cols[2].link_button("🔍 Look Up", f"https://www.google.com/search?q={urllib.parse.quote(device + ' ' + user_input[:50] + ' repair')}", use_container_width=True)
+cols[3].link_button("🌍 Translate", f"https://translate.google.com/?text={urllib.parse.quote(answer[:1000])}", use_container_width=True)
+
+cols2 = st.columns(4)
+cols2[0].link_button("📱 Share WA", f"https://wa.me/?text={urllib.parse.quote(answer)}", use_container_width=True)
+cols2[1].link_button("🔗 Share Web", f"https://wa.me/?text={urllib.parse.quote('Itech AI Diagnosis: ' + answer[:200])}", use_container_width=True)
+cols2[2].download_button("💾 Save.TXT", data=answer, file_name=f"ItechAI_{device}_{datetime.now().strftime('%Y%m%d')}.txt", use_container_width=True)
+cols2[3].components.html(f"""<script>function printDiv(){{var w=window.open('','');w.document.write('<pre>{safe_answer}</pre>');w.print();}}</script><button onclick="printDiv()" style="width:100%;padding:10px;border-radius:8px;background:#2196F3;color:white;border:none;">🖨️ Save PDF</button>""", height=45)
+
+if st.session_state.show_tech_map:
+    st.link_button("🗺️ Find Tech", f"https://www.google.com/maps/search/{urllib.parse.quote(device + ' repair technician near me in ' + country)}", use_container_width=True)
