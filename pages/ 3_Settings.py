@@ -1,17 +1,35 @@
 import streamlit as st
 
-st.set_page_config(page_title="Settings", layout="wide")
-
 st.title("⚙️ Settings")
-st.markdown("Configure your iTech AI Assistant")
+st.write("Configure your iTech AI Assistant")
 
-st.subheader("OpenAI API Key")
+# ===== API KEY SECTION =====
+st.header("OpenAI API Key")
 api_key = st.text_input("Enter your OpenAI API Key", type="password")
-
 if st.button("Save Key"):
-    st.success("API Key saved for this session!")
+    st.success("Key saved!")
 
 st.divider()
-st.subheader("Database")
-if st.button("Reset Database"):
-    st.warning("This will delete all repair history")
+
+# ===== NEW SETTINGS SECTION =====
+st.header("Privacy & Security")
+col1, col2 = st.columns(2)
+with col1:
+    st.toggle("Save chat history", value=True)
+with col2:
+    st.toggle("Share anonymous data", value=False)
+
+st.header("Appearance")
+theme = st.selectbox("Theme", ["Dark", "Light", "System"])
+language = st.selectbox("Language", ["English", "Spanish", "French"])
+
+st.header("Notifications")
+st.toggle("Email notifications", value=True)
+st.toggle("Desktop alerts", value=False)
+
+st.divider()
+
+# ===== DATABASE SECTION =====
+st.header("Database")
+if st.button("Reset Database", type="secondary"):
+    st.warning("This will delete all data!")
