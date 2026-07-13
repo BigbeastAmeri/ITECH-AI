@@ -151,10 +151,7 @@ def settings_page():
         st.download_button("💾 Export History", data=str(c.execute("SELECT * FROM logs").fetchall()), file_name="ItechAI_History.txt")
         st.caption("Itech AI v1.5.0 Global")
 
-# ===== LAYER 5: MENU =====
-page = st.sidebar.radio("Menu", ["Diagnose", "Settings", "History"])
-if page == "Settings": settings_page(); st.stop()
-if page == "History":
+# ===== LAYER 5: MENU REMOVED - Using pages folder now =====
     st.header("📜 Past Repairs")
     rows = c.execute("SELECT timestamp, device, problem, answer FROM logs ORDER BY id DESC").fetchall()
     st.metric("Total", len(rows))
