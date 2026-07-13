@@ -1,14 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from openai import OpenAI
-import os
+
 import sqlite3
 from datetime import datetime
-from dotenv import load_dotenv
+
 import urllib.parse
 
 # ===== LAYER 1: SETUP + SESSION STATE =====
-import streamlit as st  # add this at the top with your other imports
+
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 st.set_page_config(page_title="Itech AI Global", page_icon="🔧", layout="wide")
 
