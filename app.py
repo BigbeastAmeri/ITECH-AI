@@ -9,8 +9,7 @@ st.set_page_config(
 st.title("🔧 iTech AI Assistant")
 st.subheader("Your 24/7 AI Repair Expert")
 
-st.write("Got a problem with your phone, TV, fridge, or laptop? 
-Just describe it and get instant diagnosis + repair steps.")
+st.write("Got a problem with your phone, TV, fridge, or laptop? Just describe it and get instant diagnosis + repair steps.")
 
 st.divider()
 
