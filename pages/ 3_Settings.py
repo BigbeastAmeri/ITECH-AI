@@ -3,15 +3,7 @@ import streamlit as st
 st.title("⚙️ Settings")
 st.write("Configure your iTech AI Assistant")
 
-# ===== API KEY SECTION =====
-st.header("OpenAI API Key")
-api_key = st.text_input("Enter your OpenAI API Key", type="password")
-if st.button("Save Key"):
-    st.success("Key saved!")
-
-st.divider()
-
-# ===== NEW SETTINGS SECTION =====
+# ===== PRIVACY SECTION =====
 st.header("Privacy & Security")
 col1, col2 = st.columns(2)
 with col1:
