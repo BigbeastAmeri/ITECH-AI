@@ -33,7 +33,7 @@ else:
         devices = ["All"] + sorted(df['device'].unique().tolist())
         device_filter = st.selectbox("Filter by Device", devices)
 
-    # Apply filters
+       # Apply filters
         filtered_df = df.copy()
 
         if search_term:
@@ -42,5 +42,5 @@ else:
         if device_filter != "All":
             filtered_df = filtered_df[filtered_df['device'] == device_filter]
 
-        st.dataframe(filtered_df, use_container_width=True) 
+        st.dataframe(filtered_df, use_container_width=True)
     conn.close()
