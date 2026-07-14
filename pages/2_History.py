@@ -42,5 +42,5 @@ else:
         if device_filter != "All":
             filtered_df = filtered_df[filtered_df['device'] == device_filter]
 
-        st.dataframe(filtered_df, use_container_width=True)
+            st.dataframe(filtered_df, use_container_width=True)
     conn.close()
