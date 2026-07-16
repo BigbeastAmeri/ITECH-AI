@@ -1,13 +1,22 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="iTech AI Assistant", 
-    page_icon="🔧",
-    layout="centered"
+    page_title="iTECH AI",
+    page_icon="logo.png",
+    layout="wide"
 )
 
-st.title("🔧 iTech AI Assistant")
-st.subheader("Your 24/7 AI Repair Expert")
+# HEADER WITH LOGO
+col1, col2 = st.columns([1, 5])
+with col1:
+    st.image("logo.png", width=70)
+with col2:
+    st.title("iTECH AI")
+    st.caption("Smart Repair Management System")
+st.divider()
+
+# YOUR OLD CODE CONTINUES BELOW
+col1, col2 = st.columns(2)
 
 st.write("Got a problem with any electronic device? Just describe it and get instant diagnosis + repair steps.")
 
