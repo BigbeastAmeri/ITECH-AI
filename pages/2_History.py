@@ -43,5 +43,37 @@ else:
         filtered_df = filtered_df[filtered_df['device'] == device_filter]
 
     st.dataframe(filtered_df, use_container_width=True)
+st.divider()
+st.subheader("⚙️ Manage Repairs")
 
+if not filtered_df.empty:
+    repair_id = st.selectbox("Select Repair ID to Edit/Delete", filtered_df['id'])
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✏️ Edit Selected"):
+            st.session_state['edit_id'] = repair_id
+    
+    with col2:
+        if st.button("🗑️ Delete Selected"):
+            c.execute("DELETE FROM repairs WHERE id =?", (repair_id,))
+            conn.commit()
+            st.success("Repair deleted!")
+            st.rerun()
+    
+    # EDIT FORM
+    if 'edit_id' in st.session_state:
+        repair = filtered_df[filtered_df['id'] == st.session_state['edit_id']].iloc[0]
+        with st.form("edit_form"):
+            new_price = st.number_input("New Price", value=float(repair['price']))
+            new_status = st.selectbox("New Status", ["Pending", "In Progress", "Done"], 
+                                      index=["Pending", "In Progress", "Done"].index(repair['status']))
+            if st.form_submit_button("Save Changes"):
+                c.execute("UPDATE repairs SET price =?, status =? WHERE id =?", 
+                          (new_price, new_status, st.session_state['edit_id']))
+                conn.commit()
+                del st.session_state['edit_id']
+                st.success("Repair updated!")
+                st.rerun()
 conn.close()
